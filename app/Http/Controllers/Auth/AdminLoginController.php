@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Lang;
 
 class AdminLoginController extends Controller
 {
 
     public function __construct()
     {
-        $this->middleware('guest:admin');
+        $this->middleware('guest:admin')->except('logout');
     }
 
     public function showLoginForm()
@@ -21,7 +22,7 @@ class AdminLoginController extends Controller
 
     public function login(Request $request)
     {
-        $this->validate($request , [
+        $validate = $this->validate($request , [
             'email' => 'required|email',
             'password' =>'required'
         ]);
@@ -31,7 +32,15 @@ class AdminLoginController extends Controller
             return redirect()->intended(route('admin.dashboard'));
         }
 
-        return redirect()->back()->withInput($request->only('email','remember'));
+        return redirect()->back()->withInput($request->only('email','remember'))->withErrors([
+            'email' => Lang::get('auth.failed'),
+        ]);
 
+    }
+
+    public function logout()
+    {
+        Auth::guard('admin')->logout();
+        return redirect('/');
     }
 }
